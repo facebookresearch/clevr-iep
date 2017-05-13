@@ -23,7 +23,8 @@ If you find this code useful in your research then please cite
 ```
 @article{johnson2017inferring,
   title={Inferring and Executing Programs for Visual Reasoning},
-  author={Johnson, Justin and Hariharan, Bharath and van der Maaten, Laurens and Hoffman, Judy and Fei-Fei, Li and Zitnick, C Lawrence and Girshick, Ross},
+  author={Johnson, Justin and Hariharan, Bharath and van der Maaten, Laurens and Hoffman, Judy
+          and Fei-Fei, Li and Zitnick, C Lawrence and Girshick, Ross},
   journal={arXiv preprint arXiv:1705.03633},
   year={2017}
 }
