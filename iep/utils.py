@@ -32,8 +32,14 @@ def load_vocab(path):
   return vocab
 
 
+def load_cpu(path):
+  """
+  Loads a torch checkpoint, remapping all Tensors to CPU
+  """
+  return torch.load(path, map_location=lambda storage, loc: storage)
+
 def load_program_generator(path):
-  checkpoint = torch.load(path)
+  checkpoint = load_cpu(path)
   kwargs = checkpoint['program_generator_kwargs']
   state = checkpoint['program_generator_state']
   model = Seq2Seq(**kwargs)
@@ -42,7 +48,7 @@ def load_program_generator(path):
 
 
 def load_execution_engine(path, verbose=True):
-  checkpoint = torch.load(path)
+  checkpoint = load_cpu(path)
   kwargs = checkpoint['execution_engine_kwargs']
   state = checkpoint['execution_engine_state']
   kwargs['verbose'] = verbose
@@ -57,7 +63,7 @@ def load_baseline(path):
     'CNN+LSTM': CnnLstmModel,
     'CNN+LSTM+SA': CnnLstmSaModel,
   }
-  checkpoint = torch.load(path)
+  checkpoint = load_cpu(path)
   baseline_type = checkpoint['baseline_type']
   kwargs = checkpoint['baseline_kwargs']
   state = checkpoint['baseline_state']
@@ -65,3 +71,4 @@ def load_baseline(path):
   model = model_cls_dict[baseline_type](**kwargs)
   model.load_state_dict(state)
   return model, kwargs
+

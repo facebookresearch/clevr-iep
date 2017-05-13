@@ -100,18 +100,20 @@ def main(args):
 
 
 def load_vocab(args):
+  path = None
   if args.baseline_model is not None:
-    return torch.load(args.baseline_model)['vocab']
-  if args.program_generator is not None:
-    return torch.load(args.program_generator)['vocab']
-  if args.execution_engine is not None:
-    return torch.load(args.execution_engine)['vocab']
+    path = args.baseline_model
+  elif args.program_generator is not None:
+    path = args.program_generator
+  elif args.execution_engine is not None:
+    path = args.execution_engine
+  return utils.load_cpu(path)['vocab']
 
 
 def run_single_example(args, model):
-  dtype = 'torch.FloatTensor'
+  dtype = torch.FloatTensor
   if args.use_gpu == 1:
-    dtype = 'torch.cuda.FloatTensor'
+    dtype = torch.cuda.FloatTensor
 
   # Build the CNN to use for feature extraction
   print('Loading CNN for feature extraction')
@@ -201,15 +203,18 @@ def build_cnn(args, dtype):
 
 
 def run_batch(args, model, loader):
+  dtype = torch.FloatTensor
+  if args.use_gpu == 1:
+    dtype = torch.cuda.FloatTensor
   if type(model) is tuple:
     program_generator, execution_engine = model
-    run_our_model_batch(args, program_generator, execution_engine, loader)
+    run_our_model_batch(args, program_generator, execution_engine, loader, dtype)
   else:
-    run_baseline_batch(args, model, loader)
+    run_baseline_batch(args, model, loader, dtype)
 
 
-def run_baseline_batch(args, model, loader):
-  model.cuda()
+def run_baseline_batch(args, model, loader, dtype):
+  model.type(dtype)
   model.eval()
 
   all_scores, all_probs = [], []
@@ -217,8 +222,8 @@ def run_baseline_batch(args, model, loader):
   for batch in loader:
     questions, images, feats, answers, programs, program_lists = batch
 
-    questions_var = Variable(questions.cuda(), volatile=True)
-    feats_var = Variable(feats.cuda(), volatile=True)
+    questions_var = Variable(questions.type(dtype).long(), volatile=True)
+    feats_var = Variable(feats.type(dtype), volatile=True)
     scores = model(questions_var, feats_var)
     probs = F.softmax(scores)
 
@@ -242,10 +247,10 @@ def run_baseline_batch(args, model, loader):
       fout.create_dataset('probs', data=all_probs.numpy())
 
 
-def run_our_model_batch(args, program_generator, execution_engine, loader):
-  program_generator.cuda()
+def run_our_model_batch(args, program_generator, execution_engine, loader, dtype):
+  program_generator.type(dtype)
   program_generator.eval()
-  execution_engine.cuda()
+  execution_engine.type(dtype)
   execution_engine.eval()
 
   all_scores, all_programs = [], []
@@ -254,8 +259,8 @@ def run_our_model_batch(args, program_generator, execution_engine, loader):
   for batch in loader:
     questions, images, feats, answers, programs, program_lists = batch
 
-    questions_var = Variable(questions.cuda(), volatile=True)
-    feats_var = Variable(feats.cuda(), volatile=True)
+    questions_var = Variable(questions.type(dtype).long(), volatile=True)
+    feats_var = Variable(feats.type(dtype), volatile=True)
 
     programs_pred = program_generator.reinforce_sample(
                         questions_var,
