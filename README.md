@@ -2,7 +2,7 @@
 
 This is the code for the paper
 
- **Inferring and Executing Programs for Visual Reasoning**
+ **<a href="https://arxiv.org/abs/1705.03633">Inferring and Executing Programs for Visual Reasoning</a>**
  <br>
  <a href='http://cs.stanford.edu/people/jcjohns/'>Justin Johnson</a>,
  <a href='http://home.bharathh.info/'>Bharath Hariharan</a>,
@@ -17,6 +17,17 @@ This is the code for the paper
 <div align="center">
   <img src="https://github.com/facebookresearch/clevr-iep/blob/master/img/system.png" width="450px">
 </div>
+
+If you find this code useful in your research then please cite
+
+```
+@article{johnson2017inferring,
+  title={Inferring and Executing Programs for Visual Reasoning},
+  author={Johnson, Justin and Hariharan, Bharath and van der Maaten, Laurens and Hoffman, Judy and Fei-Fei, Li and Zitnick, C Lawrence and Girshick, Ross},
+  journal={arXiv preprint arXiv:1705.03633},
+  year={2017}
+}
+```
 
 # Setup
 
