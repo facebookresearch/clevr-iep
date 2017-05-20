@@ -46,7 +46,7 @@ deactivate # Exit virtual environment
 ```
 
 # Pretrained Models
-You can download and unzip the pretrained models by running `bash scripts/download_models.sh`;
+You can download and unzip the pretrained models by running `bash scripts/download_pretrained_models.sh`;
 the models will take about 1.1 GB on disk.
 
 We provide two sets of pretrained models:
