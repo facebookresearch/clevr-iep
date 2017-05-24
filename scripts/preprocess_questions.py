@@ -66,9 +66,10 @@ def main(args):
   # Either create the vocab or load it from disk
   if args.input_vocab_json == '' or args.expand_vocab == 1:
     print('Building vocab')
-    answer_token_to_idx = build_vocab(
-      (q['answer'] for q in questions)
-    )
+    if 'answer' in questions[0]:
+      answer_token_to_idx = build_vocab(
+        (q['answer'] for q in questions)
+      )
     question_token_to_idx = build_vocab(
       (q['question'] for q in questions),
       min_token_count=args.unk_threshold,

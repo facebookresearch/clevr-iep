@@ -59,12 +59,12 @@ python scripts/preprocess_questions.py \
 python scripts/preprocess_questions.py \
   --input_questions_json data/CLEVR_v1.0/questions/CLEVR_val_questions.json \
   --output_h5_file data/val_questions.h5 \
-  --output_vocab_json data/vocab.json
+  --input_vocab_json data/vocab.json
   
 python scripts/preprocess_questions.py \
   --input_questions_json data/CLEVR_v1.0/questions/CLEVR_test_questions.json \
   --output_h5_file data/test_questions.h5 \
-  --output_vocab_json data/vocab.json
+  --input_vocab_json data/vocab.json
 ```
 
 When preprocessing questions, we create a file `vocab.json` which stores the mapping between
@@ -175,7 +175,8 @@ python scripts/run_model.py \
 You can download the CLEVR-Humans dataset like this:
 
 ```bash
-TODO
+wget http://cs.stanford.edu/people/jcjohns/iep/CLEVR-Humans.zip -O data/CLEVR-Humans.zip
+unzip data/CLEVR-Humans.zip -d data
 ```
 
 ### Step 2: Preprocess the data
