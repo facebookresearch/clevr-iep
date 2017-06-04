@@ -96,9 +96,9 @@ class Seq2Seq(nn.Module):
     y_embed = self.decoder_embed(y)
     encoded_repeat = encoded.view(N, 1, H).expand(N, T_out, H)
     rnn_input = torch.cat([encoded_repeat, y_embed], 2)
-    if not h0:
+    if h0 is None:
       h0 = Variable(torch.zeros(L, N, H).type_as(encoded.data))
-    if not c0:
+    if c0 is None:
       c0 = Variable(torch.zeros(L, N, H).type_as(encoded.data))
     rnn_output, (ht, ct) = self.decoder_rnn(rnn_input, (h0, c0))
 
