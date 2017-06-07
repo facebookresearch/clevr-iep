@@ -34,6 +34,7 @@ parser.add_argument('--use_gpu', default=1, type=int)
 # For running on a preprocessed dataset
 parser.add_argument('--input_question_h5', default='data/val_questions.h5')
 parser.add_argument('--input_features_h5', default='data-ssd/val_features.h5')
+parser.add_argument('--use_gt_programs', default=0, type=int)
 
 # This will override the vocab stored in the checkpoint;
 # we need this to run CLEVR models on human data
@@ -266,7 +267,10 @@ def run_our_model_batch(args, program_generator, execution_engine, loader, dtype
                         questions_var,
                         temperature=args.temperature,
                         argmax=(args.sample_argmax == 1))
-    scores = execution_engine(feats_var, programs_pred)
+    if args.use_gt_programs == 1:
+      scores = execution_engine(feats_var, program_lists)
+    else:
+      scores = execution_engine(feats_var, programs_pred)
     probs = F.softmax(scores)
 
     _, preds = scores.data.cpu().max(1)
