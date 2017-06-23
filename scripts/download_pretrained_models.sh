@@ -4,6 +4,6 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-wget https://ai.stanford.edu/~jcjohns/inferring-and-executing/models.zip
+wget https://s3-us-west-1.amazonaws.com/clevr/iep/models.zip
 unzip models.zip
 rm models.zip
