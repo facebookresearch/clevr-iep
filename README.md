@@ -12,7 +12,7 @@ This is the code for the paper
  <a href='http://larryzitnick.org/'>Larry Zitnick</a>,
  <a href='http://www.rossgirshick.info/'>Ross Girshick</a>
  <br>
- arXiv 2017
+ To appear at [ICCV 2017](http://iccv2017.thecvf.com/)
 
 <div align="center">
   <img src="https://github.com/facebookresearch/clevr-iep/blob/master/img/system.png" width="450px">
@@ -21,11 +21,11 @@ This is the code for the paper
 If you find this code useful in your research then please cite
 
 ```
-@article{johnson2017inferring,
+@inproceedings{johnson2017inferring,
   title={Inferring and Executing Programs for Visual Reasoning},
   author={Johnson, Justin and Hariharan, Bharath and van der Maaten, Laurens and Hoffman, Judy
           and Fei-Fei, Li and Zitnick, C Lawrence and Girshick, Ross},
-  journal={arXiv preprint arXiv:1705.03633},
+  booktitle={ICCV},
   year={2017}
 }
 ```
