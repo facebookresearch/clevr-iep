@@ -234,8 +234,6 @@ class ModuleNet(nn.Module):
       final_module_outputs = self._forward_modules_json(feats, program)
     elif type(program) is Variable and program.dim() == 2:
       final_module_outputs = self._forward_modules_ints(feats, program)
-    elif torch.is_tensor(program) and program.dim() == 3:
-      final_module_outputs = self._forward_modules_probs(feats, program)
     else:
       raise ValueError('Unrecognized program format')
 
