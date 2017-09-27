@@ -237,7 +237,7 @@ def run_baseline_batch(args, model, loader, dtype):
     print('Ran %d samples' % num_samples)
 
   acc = float(num_correct) / num_samples
-  print('God %d / %d = %.2f correct' % (num_correct, num_samples, 100 * acc))
+  print('Got %d / %d = %.2f correct' % (num_correct, num_samples, 100 * acc))
 
   all_scores = torch.cat(all_scores, 0)
   all_probs = torch.cat(all_probs, 0)
