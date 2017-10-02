@@ -480,7 +480,7 @@ def check_accuracy(args, program_generator, execution_engine, baseline_model, lo
     if num_samples >= args.num_val_samples:
       break
 
-  set_mode('eval', [program_generator, execution_engine, baseline_model])
+  set_mode('train', [program_generator, execution_engine, baseline_model])
   acc = float(num_correct) / num_samples
   return acc
 
