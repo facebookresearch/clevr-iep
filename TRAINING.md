@@ -24,7 +24,7 @@ For the purpose of this tutorial we assume that all data will be stored in a new
 
 ```bash
 mkdir data
-wget https://s3-us-west-1.amazonaws.com/clevr/CLEVR_v1.0.zip -O data/CLEVR_v1.0.zip
+wget https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0.zip -O data/CLEVR_v1.0.zip
 unzip data/CLEVR_v1.0.zip -d data
 ```
 
