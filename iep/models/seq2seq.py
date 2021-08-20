@@ -11,7 +11,7 @@ import torch.cuda
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-
+import numpy as np
 from iep.embedding import expand_embedding_vocab
 
 class Seq2Seq(nn.Module):
@@ -150,12 +150,204 @@ class Seq2Seq(nn.Module):
     while True:
       cur_y = Variable(torch.LongTensor([y[-1]]).type_as(x.data).view(1, 1))
       logprobs, h0, c0 = self.decoder(encoded, cur_y, h0=h0, c0=c0)
+      #print("logprob: ",logprobs)
       _, next_y = logprobs.data.max(2)
+      #print("next_y: ",next_y)
       y.append(next_y[0, 0, 0])
+      if len(y) >= max_length or y[-1] == self.END:
+        break
+    print("Y; ",y)
+    return y
+
+  def self_sample(self, x, max_length=50):
+    # TODO: Handle sampling for minibatch inputs
+    # TODO: Beam search?
+    assert x.size(0) == 1, "Sampling minibatches not implemented"
+    encoded = self.encoder(x)
+    y = [self.START]
+    h0, c0 = None, None
+    while True:
+      cur_y = Variable(torch.LongTensor([y[-1]]).type_as(x.data).view(1, 1))
+      logprobs, h0, c0 = self.decoder(encoded, cur_y, h0=h0, c0=c0)
+      #print(logprobs)
+      probs = F.softmax(logprobs.view(1, -1))
+      #print("soft: ",probs*2)
+      #print("H; ",h0)
+      abc, next_y = probs.max(1)
+      #print(type(int(next_y.data.numpy()[0])))
+      y.append(int(next_y.data.numpy()[0]))
+      #print("y: ",y)
       if len(y) >= max_length or y[-1] == self.END:
         break
     return y
 
+  def sortSecond(self, val):
+    return val[1]
+
+  def beam_search(self, x, max_length=50):
+      # TODO: Handle sampling for minibatch inputs
+      assert x.size(0) == 1, "Sampling minibatches not implemented"
+      encoded = self.encoder(x)
+      y = [self.START]
+      y1 = []
+      y2 = []
+      y3 = []
+      beam_width = 3
+      h0, c0 = None, None
+      cur_y = Variable(torch.LongTensor([y[-1]]).type_as(x.data).view(1, 1))
+      logprobs, h0, c0 = self.decoder(encoded, cur_y, h0=h0, c0=c0)
+      probs = F.softmax(logprobs.view(1, -1))
+      values, indices = torch.topk(probs,3)
+      values = values.data
+      values = values.numpy()
+      values = np.array(values).tolist()
+      values = values[0]
+      indices = indices.data
+      indices = indices.numpy()
+      indices = np.array(indices).tolist()
+      indices = indices[0]
+      y1.append(indices[0])
+      y2.append(indices[1])
+      y3.append(indices[2])
+      arg = None
+      list1 = []
+      h0_list = []
+      c0_list = []
+      count = 0
+      for idx,value in zip(indices,values):
+          cur_y = Variable(torch.LongTensor([idx]).type_as(x.data).view(1, 1))
+          temp_log, temp_h0,temp_c0 = self.decoder(encoded, cur_y, h0 = h0, c0=c0)
+          probs = F.softmax(temp_log.view(1, -1))
+          probs = probs*value
+          temp_values, temp_indices = torch.topk(probs,3)
+          temp_values = temp_values.data
+          temp_values = temp_values.numpy()
+          temp_values = np.array(temp_values).tolist()
+          temp_values = temp_values[0]
+          temp_indices = temp_indices.data
+          temp_indices = temp_indices.numpy()
+          temp_indices = np.array(temp_indices).tolist()
+          temp_indices = temp_indices[0]
+          h0_list.append(temp_h0)
+          c0_list.append(temp_c0)
+          for temp_idx,temp_val in zip(temp_indices,temp_values):
+              list1.append([temp_idx,temp_val,count])
+          count = count + 1
+      list1.sort(key = self.sortSecond,reverse = True)
+      indices = [list1[0][0],list1[1][0],list1[2][0]]
+      values = [list1[0][1],list1[1][1],list1[2][1]]
+      log = [list1[0][2],list1[1][2],list1[2][2]]
+      arg = list1[0][0]
+      temp_y1 = []
+      temp_y2 = []
+      temp_y3 = []
+      for i in log:
+        if(i == 0):
+          if(len(temp_y1) == 0):
+            temp_y1 = y1.copy()
+            temp_y1.append(list1[0][0])
+          elif(len(temp_y2) == 0):
+            temp_y2 = y1.copy()
+            temp_y2.append(list1[1][0])
+          elif(len(temp_y3) == 0):
+            temp_y3 = y1.copy()
+            temp_y3.append(list1[2][0])
+        if(i == 1):
+          if(len(temp_y1) == 0):
+            temp_y1 = y2.copy()
+            temp_y1.append(list1[0][0])
+          elif(len(temp_y2) == 0):
+            temp_y2 = y2.copy()
+            temp_y2.append(list1[1][0])
+          elif(len(temp_y3) == 0):
+            temp_y3 = y2.copy()
+            temp_y3.append(list1[2][0])
+        if(i == 2):
+          if(len(temp_y1) == 0):
+            temp_y1 = y3.copy()
+            temp_y1.append(list1[0][0])
+          elif(len(temp_y2) == 0):
+            temp_y2 = y3.copy()
+            temp_y2.append(list1[1][0])
+          elif(len(temp_y3) == 0):
+            temp_y3 = y3.copy()
+            temp_y3.append(list1[2][0])
+
+      y1 = temp_y1.copy()
+      y2 = temp_y2.copy()
+      y3 = temp_y3.copy()
+      temp_y1 = []
+      temp_y2 = []
+      temp_y3 = []
+
+      while(arg!=2 and len(y1)<=50 and len(y2)<=50 and len(y3)<=50):
+          list1 = []
+          count = 0
+          count_new = 2
+          for idx,value,a in zip(indices,values,log):
+              cur_y = Variable(torch.LongTensor([idx]).type_as(x.data).view(1, 1))
+              temp_log, temp_h0,temp_c0 = self.decoder(encoded, cur_y, h0 = h0_list[a], c0=c0_list[a])
+              probs = F.softmax(temp_log.view(1, -1))
+              probs = probs*value
+              temp_values, temp_indices = torch.topk(probs,3)
+              temp_values = temp_values.data
+              temp_values = temp_values.numpy()
+              temp_values = np.array(temp_values).tolist()
+              temp_values = temp_values[0]
+              temp_indices = temp_indices.data
+              temp_indices = temp_indices.numpy()
+              temp_indices = np.array(temp_indices).tolist()
+              temp_indices = temp_indices[0]
+              h0_list[count] = temp_h0
+              c0_list[count] = temp_c0
+              for temp_idx,temp_val in zip(temp_indices,temp_values):
+                  list1.append([temp_idx,temp_val,count])
+              count = count + 1
+              count_new = count_new + 1
+          list1.sort(key = self.sortSecond, reverse = True)
+          indices = [list1[0][0],list1[1][0],list1[2][0]]
+          values = [list1[0][1],list1[1][1],list1[2][1]]
+          arg = list1[0][0]
+          log = [list1[0][2],list1[1][2],list1[2][2]]
+          for i in log:
+            if(i == 0):
+              if(len(temp_y1) == 0):
+                temp_y1 = y1.copy()
+                temp_y1.append(list1[0][0])
+              elif(len(temp_y2) == 0):
+                temp_y2 = y1.copy()
+                temp_y2.append(list1[1][0])
+              elif(len(temp_y3) == 0):
+                temp_y3 = y1.copy()
+                temp_y3.append(list1[2][0])
+            if(i == 1):
+              if(len(temp_y1) == 0):
+                temp_y1 = y2.copy()
+                temp_y1.append(list1[0][0])
+              elif(len(temp_y2) == 0):
+                temp_y2 = y2.copy()
+                temp_y2.append(list1[1][0])
+              elif(len(temp_y3) == 0):
+                temp_y3 = y2.copy()
+                temp_y3.append(list1[2][0])
+            if(i == 2):
+              if(len(temp_y1) == 0):
+                temp_y1 = y3.copy()
+                temp_y1.append(list1[0][0])
+              elif(len(temp_y2) == 0):
+                temp_y2 = y3.copy()
+                temp_y2.append(list1[1][0])
+              elif(len(temp_y3) == 0):
+                temp_y3 = y3.copy()
+                temp_y3.append(list1[2][0])
+          y1 = temp_y1.copy()
+          y2 = temp_y2.copy()
+          y3 = temp_y3.copy()
+          temp_y1 = []
+          temp_y2 = []
+          temp_y3 = []
+      return y1
+      
   def reinforce_sample(self, x, max_length=30, temperature=1.0, argmax=False):
     N, T = x.size(0), max_length
     encoded = self.encoder(x)
