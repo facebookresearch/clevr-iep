@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--program_generator', default=None)
 parser.add_argument('--execution_engine', default=None)
 parser.add_argument('--baseline_model', default=None)
-parser.add_argument('--use_gpu', default=1, type=int)
+parser.add_argument('--use_gpu', default=0, type=int)
 
 # For running on a preprocessed dataset
 parser.add_argument('--input_question_h5', default='data/val_questions.h5')
@@ -144,7 +144,6 @@ def run_single_example(args, model):
   question_encoded = torch.LongTensor(question_encoded).view(1, -1)
   question_encoded = question_encoded.type(dtype).long()
   question_var = Variable(question_encoded, volatile=True)
-
   # Run the model
   print('Running the model\n')
   scores = None
@@ -153,10 +152,18 @@ def run_single_example(args, model):
     program_generator, execution_engine = model
     program_generator.type(dtype)
     execution_engine.type(dtype)
+
     predicted_program = program_generator.reinforce_sample(
                           question_var,
                           temperature=args.temperature,
                           argmax=(args.sample_argmax == 1))
+
+    # If using BEAM SEARCH, uncomment below lines
+    # predicted_program = program_generator.beam_search_3(question_var)
+    # predicted_program = torch.LongTensor(predicted_program).view(1, -1)
+    # predicted_program = predicted_program.type(dtype).long()
+    # predicted_program = Variable(predicted_program.type_as(question_var.data))
+
     scores = execution_engine(feats_var, predicted_program)
   else:
     model.type(dtype)
@@ -165,7 +172,6 @@ def run_single_example(args, model):
   # Print results
   _, predicted_answer_idx = scores.data.cpu()[0].max(dim=0)
   predicted_answer = vocab['answer_idx_to_token'][predicted_answer_idx[0]]
-
   print('Question: "%s"' % args.question)
   print('Predicted answer: ', predicted_answer)
 
@@ -258,7 +264,7 @@ def run_our_model_batch(args, program_generator, execution_engine, loader, dtype
   all_probs = []
   num_correct, num_samples = 0, 0
   for batch in loader:
-    questions, images, feats, answers, programs, program_lists = batch
+    questions, images, feats, programs, program_lists = batch
 
     questions_var = Variable(questions.type(dtype).long(), volatile=True)
     feats_var = Variable(feats.type(dtype), volatile=True)
